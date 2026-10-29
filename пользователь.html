@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отслеживание конкурсных списков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8edf5 50%, #f0f4ff 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            max-width: 850px;
+            width: 100%;
+            padding: 40px 50px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(46, 134, 222, 0.15);
+            border: 1px solid rgba(46, 134, 222, 0.08);
+        }
+        h1 {
+            font-size: 26px;
+            color: #1a2a3a;
+            margin-bottom: 8px;
+            text-align: center;
+            letter-spacing: -0.3px;
+        }
+        h1 .highlight {
+            background: linear-gradient(135deg, #2e86de, #6f42c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #6b7a8a;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+
+        /* === ТАЙМЕР === */
+        .timer-section {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 25px 25px 20px 25px;
+            margin-bottom: 25px;
+            border: 2px solid #2e86de;
+            text-align: center;
+        }
+        .timer-section .timer-info {
+            font-size: 16px;
+            color: #2c3e50;
+            line-height: 1.7;
+            margin-bottom: 18px;
+            padding: 15px 18px;
+            background: #e8f4fd;
+            border-radius: 10px;
+            border-left: 5px solid #2e86de;
+            text-align: justify;
+        }
+        .timer-section .timer-info strong {
+            color: #1a2a3a;
+            font-weight: 700;
+        }
+        .timer-section .timer-title {
+            font-size: 15px;
+            color: #6b7a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+        .timer-section .timer-title .icon {
+            font-size: 18px;
+        }
+        .timer-section .timer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .timer-section .timer-item {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid rgba(46, 134, 222, 0.1);
+        }
+        .timer-section .timer-item .number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2e86de;
+            line-height: 1.2;
+        }
+        .timer-section .timer-item .label {
+            font-size: 12px;
+            color: #8a9aa8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .timer-section .timer-expired {
+            display: none;
+            padding: 15px;
+        }
+        .timer-section .timer-expired.show {
+            display: block;
+        }
+        .timer-section .timer-expired .expired-icon {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .timer-section .timer-expired .expired-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #dc3545;
+        }
+
+        /* === РЕЖИМ ОБСЛУЖИВАНИЯ === */
+        .maintenance-overlay {
+            display: none;
+            text-align: center;
+            padding: 30px 10px;
+        }
+        .maintenance-overlay.show {
+            display: block;
+        }
+        .maintenance-overlay .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .maintenance-overlay h2 {
+            color: #1a2a3a;
+            margin-bottom: 15px;
+        }
+        .maintenance-overlay p {
+            color: #6b7a8a;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e9ecef;
+            border-top-color: #2e86de;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* === ОСНОВНОЙ КОНТЕНТ === */
+        #mainContent {
+            display: block;
+        }
+        #mainContent.hidden {
+            display: none;
+        }
+
+        /* === ВКЛАДКИ === */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+        .tabs .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7a8a;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 8px 8px 0 0;
+        }
+        .tabs .tab-btn:hover {
+            color: #2c3e50;
+            background: #f8f9fa;
+        }
+        .tabs .tab-btn.active {
+            color: #2e86de;
+            border-bottom-color: #2e86de;
+            background: #f8f9ff;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === ПОИСК СТАТУСА === */
+        .search-section {
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+            border-radius: 12px;
+            padding: 22px 24px;
+            margin-bottom: 20px;
+            border: 2px solid #dce4ec;
+            transition: 0.3s;
+        }
+        .search-section:focus-within {
+            border-color: #2e86de;
+            box-shadow: 0 0 0 4px rgba(46, 134, 222, 0.1);
+        }
+        .search-section label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .search-section .input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .search-section input {
+            flex: 1;
+            min-width: 180px;
+            padding: 14px 18px;
+            border: 2px solid #dce4ec;
+            border-radius: 10px;
+            font-size: 17px;
+            transition: 0.3s;
+            background: white;
+        }
+        .search-section input:focus {
+            border-color: #2e86de;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(46, 134, 222, 0.15);
+        }
+        .search-section .btn-check {
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #2e86de, #6f42c1);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(46, 134, 222, 0.3);
+        }
+        .search-section .btn-check:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(46, 134, 222, 0.4);
+        }
+        .search-section .btn-check:disabled {
+            background: #a0b8cc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .search-status {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 10px;
+            min-height: 22px;
+        }
+        .search-status.found {
+            color: #28a745;
+        }
+        .search-status.not-found {
+            color: #dc3545;
+        }
+        .search-status.error {
+            color: #dc3545;
+        }
+
+        /* === РЕЗУЛЬТАТ (СТАТУС) === */
+        .result-card {
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+            border-radius: 12px;
+            padding: 28px 30px;
+            border: 2px solid #dce4ec;
+            display: none;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        .result-card.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-card .result-number {
+            font-size: 15px;
+            color: #6b7a8a;
+            margin-bottom: 5px;
+        }
+        .result-card .result-number strong {
+            color: #1a2a3a;
+        }
+        .result-card .result-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a2a3a;
+            margin-bottom: 18px;
+        }
+        .result-card .result-title.success {
+            color: #28a745;
+        }
+        .result-card .result-title.fail {
+            color: #dc3545;
+        }
+        .result-card .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .result-card .result-item {
+            background: white;
+            border-radius: 10px;
+            padding: 16px 14px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            border: 1px solid rgba(46, 134, 222, 0.06);
+            transition: 0.3s;
+        }
+        .result-card .result-item:hover {
+            box-shadow: 0 4px 15px rgba(46, 134, 222, 0.08);
+            transform: translateY(-1px);
+        }
+        .result-card .result-item .label {
+            font-size: 12px;
+            color: #5a6a7a;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+        }
+        .result-card .result-item .label .emoji {
+            font-size: 15px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .result-card .result-item .value {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a2a3a;
+            margin-top: 4px;
+        }
+        .result-card .result-item .value.high {
+            color: #28a745;
+        }
+        .result-card .result-item .value.medium {
+            color: #fd7e14;
+        }
+        .result-card .result-item .value.low {
+            color: #dc3545;
+        }
+        .result-card .result-item .value.profile {
+            background: linear-gradient(135deg, #2e86de, #6f42c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .result-card .result-divider {
+            grid-column: 1 / -1;
+            border: none;
+            border-top: 1px dashed #dce4ec;
+            margin: 3px 0;
+        }
+        .result-card .result-footer {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 2px solid #e9ecef;
+            text-align: center;
+            font-size: 15px;
+            color: #6b7a8a;
+        }
+        .result-card .result-footer strong {
+            color: #1a2a3a;
+        }
+        .result-card .result-footer strong.success {
+            color: #28a745;
+        }
+        .result-card .result-footer strong.fail {
+            color: #dc3545;
+        }
+
+        /* === СТАТУС "ЗАЯВЛЕНИЕ ОТОЗВАНО" === */
+        .result-card .withdrawn-icon {
+            font-size: 48px;
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .result-card .withdrawn-text {
+            text-align: center;
+            font-size: 18px;
+            color: #dc3545;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .result-card .withdrawn-subtext {
+            text-align: center;
+            font-size: 14px;
+            color: #6b7a8a;
+        }
+
+        /* === КОНКУРСНЫЙ СПИСОК === */
+        .rating-list-card {
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+            border-radius: 12px;
+            padding: 25px 30px;
+            border: 2px solid #dce4ec;
+            display: none;
+            margin-top: 20px;
+            transition: 0.3s;
+            overflow-x: auto;
+        }
+        .rating-list-card.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        .rating-list-card .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .rating-list-card .list-header h3 {
+            font-size: 18px;
+            color: #1a2a3a;
+        }
+        .rating-list-card .list-header .profile-badge {
+            background: linear-gradient(135deg, #2e86de, #6f42c1);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .rating-list-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .rating-list-card table th {
+            background: #e9ecef;
+            color: #2c3e50;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dce4ec;
+        }
+        .rating-list-card table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e9ecef;
+            color: #2c3e50;
+        }
+        .rating-list-card table tr:hover td {
+            background: #f8f9ff;
+        }
+        .rating-list-card table .highlight-row {
+            background: #e8f4fd !important;
+        }
+        .rating-list-card table .highlight-row td {
+            font-weight: 700;
+            border-left: 3px solid #2e86de;
+        }
+        .rating-list-card table .withdrawn-row td {
+            opacity: 0.4;
+            color: #999;
+        }
+        .rating-list-card .place-high {
+            color: #28a745;
+            font-weight: 700;
+        }
+        .rating-list-card .you-badge {
+            display: inline-block;
+            background: #2e86de;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 6px;
+            text-transform: uppercase;
+        }
+        .rating-list-card .original-badge {
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .rating-list-card .original-badge.yes {
+            color: #28a745;
+        }
+        .rating-list-card .original-badge.no {
+            color: #dc3545;
+        }
+        .rating-list-card .list-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e9ecef;
+            text-align: center;
+            font-size: 13px;
+            color: #6b7a8a;
+        }
+        .rating-list-card .list-footer strong {
+            color: #1a2a3a;
+        }
+
+        /* === ИНФОРМАЦИЯ === */
+        .info-box {
+            text-align: center;
+            padding: 16px 22px;
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #6f42c1;
+            border: 1px solid rgba(46, 134, 222, 0.1);
+        }
+        .info-box p {
+            color: #2c3e50;
+            font-size: 15px;
+        }
+        .info-box .hint-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+
+        /* === СТАТУС === */
+        #status {
+            margin-top: 15px;
+            padding: 14px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        #status.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+        }
+        #status.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        #status.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* === ПОДВАЛ === */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 13px;
+            color: #8a9aa8;
+            border-top: 1px solid #e9ecef;
+            padding-top: 20px;
+        }
+        .footer .footer-highlight {
+            color: #6f42c1;
+        }
+        .footer a {
+            color: #2e86de;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* === АДАПТИВ === */
+        @media (max-width: 600px) {
+            .container { padding: 25px 20px; }
+            .search-section .input-group { flex-direction: column; }
+            .search-section .btn-check { width: 100%; }
+            .result-card .result-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .result-card .result-item .value {
+                font-size: 22px;
+            }
+            h1 { font-size: 20px; }
+            .result-card .result-title { font-size: 17px; }
+            .timer-section .timer-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+            .timer-section .timer-item .number {
+                font-size: 24px;
+            }
+            .timer-section .timer-info {
+                font-size: 14px;
+                padding: 12px 14px;
+                text-align: justify;
+            }
+            .timer-section .timer-title {
+                font-size: 13px;
+            }
+            .subtitle {
+                font-size: 14px;
+            }
+            .tabs .tab-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+                flex: 1;
+                text-align: center;
+            }
+            .rating-list-card {
+                padding: 18px 15px;
+            }
+            .rating-list-card table {
+                font-size: 12px;
+            }
+            .rating-list-card table th,
+            .rating-list-card table td {
+                padding: 6px 8px;
+            }
+        }
+        @media (max-width: 380px) {
+            .result-card .result-grid {
+                grid-template-columns: 1fr;
+            }
+            .timer-section .timer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .rating-list-card table {
+                font-size: 11px;
+            }
+            .rating-list-card table th,
+            .rating-list-card table td {
+                padding: 4px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- === РЕЖИМ ОБСЛУЖИВАНИЯ === -->
+        <div id="maintenanceOverlay" class="maintenance-overlay">
+            <div class="spinner"></div>
+            <div class="icon">🔧</div>
+            <h2>Система обновляется</h2>
+            <p>В настоящий момент администратор обновляет информацию в системе.<br><br>
+            Пожалуйста, зайдите позже.</p>
+        </div>
+
+        <!-- === ОСНОВНОЙ КОНТЕНТ === -->
+        <div id="mainContent">
+            <h1>📋 <span class="highlight">Отслеживание конкурсных списков</span></h1>
+            <p class="subtitle">Проверьте статус вашего заявления на индивидуальный отбор</p>
+
+            <!-- === ТАЙМЕР ДО ОКОНЧАНИЯ ПРИЁМА === -->
+            <div class="timer-section" id="timerSection">
+                <div class="timer-info">
+                    <strong>📌 Важно!</strong> Приём документов на конкурсный отбор завершится <strong>2 июля</strong>. Окончательные результаты конкурсного отбора и рейтинговые списки будут доступны не позднее <strong>7 июля</strong>.<br></br> Если Вы успешно прошли конкурсный отбор, Вы можете приступать к этапу зачисления. Для этого необходимо <strong>с 7 по 10 июля</strong> принести в приёмную комиссию соответствующий пакет документов. Больше информации о зачислении смотрите на сайте школы.
+                </div>
+                <div class="timer-title">
+                    <span class="icon">⏳</span> До окончания приёма заявлений осталось
+                </div>
+                <div class="timer-grid" id="timerGrid">
+                    <div class="timer-item">
+                        <div class="number" id="timerDays">00</div>
+                        <div class="label">Дней</div>
+                    </div>
+                    <div class="timer-item">
+                        <div class="number" id="timerHours">00</div>
+                        <div class="label">Часов</div>
+                    </div>
+                    <div class="timer-item">
+                        <div class="number" id="timerMinutes">00</div>
+                        <div class="label">Минут</div>
+                    </div>
+                    <div class="timer-item">
+                        <div class="number" id="timerSeconds">00</div>
+                        <div class="label">Секунд</div>
+                    </div>
+                </div>
+                <div class="timer-expired" id="timerExpired">
+                    <span class="expired-icon">📢</span>
+                    <span class="expired-text">Приём заявлений завершён!</span>
+                </div>
+            </div>
+
+            <!-- Поиск -->
+            <div class="search-section">
+                <label for="searchNumber">🔍 Введите номер вашего заявления</label>
+                <div class="input-group">
+                    <input type="number" id="searchNumber" min="1" placeholder="Например: 1" autofocus>
+                    <button class="btn-check" id="checkBtn">Проверить</button>
+                </div>
+                <div id="searchStatus" class="search-status">Введите номер заявления для проверки</div>
+            </div>
+
+            <!-- === ВКЛАДКИ === -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tab1">📊 Мой статус</button>
+                <button class="tab-btn" data-tab="tab2" id="ratingListTab">📋 Конкурсный список</button>
+            </div>
+
+            <!-- === ВКЛАДКА 1: МОЙ СТАТУС === -->
+            <div id="tab1" class="tab-content active">
+                <div id="resultCard" class="result-card">
+                    <div class="result-number">📄 Заявление №<strong id="resultAppNumber">—</strong></div>
+                    <div class="result-title" id="resultTitle">Ваше место в рейтинге</div>
+                    <!-- Блок для отозванного заявления (скрыт по умолчанию) -->
+                    <div id="withdrawnBlock" style="display:none;">
+                        <div class="withdrawn-icon">📢</div>
+                        <div class="withdrawn-text">Заявление отозвано</div>
+                        <div class="withdrawn-subtext">Вы отозвали своё заявление. Оно не участвует в конкурсном отборе.</div>
+                    </div>
+                    <!-- Обычный блок с результатами -->
+                    <div id="resultBlock">
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <div class="label"><span class="emoji">🏆</span> Место в рейтинге</div>
+                                <div class="value high" id="resultPlace">—</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="label"><span class="emoji">⭐</span> Суммарный балл</div>
+                                <div class="value" id="resultScore">—</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="label"><span class="emoji">📌</span> Всего заявлений</div>
+                                <div class="value" id="resultTotal">—</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="label"><span class="emoji">📊</span> Профиль</div>
+                                <div class="value profile" id="resultProfile">—</div>
+                            </div>
+                            <div class="result-divider"></div>
+                            <div class="result-item" style="grid-column: 1 / -1;">
+                                <div class="label"><span class="emoji">🎯</span> Мест для зачисления</div>
+                                <div class="value" id="resultPlaces">—</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="result-footer" id="resultFooter">
+                        💡 Статус: <strong id="resultStatus">Заявление принято</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === ВКЛАДКА 2: КОНКУРСНЫЙ СПИСОК === -->
+            <div id="tab2" class="tab-content">
+                <div id="ratingListCard" class="rating-list-card">
+                    <div class="list-header">
+                        <h3>📋 Конкурсный список</h3>
+                        <span class="profile-badge" id="listProfileBadge">—</span>
+                    </div>
+                    <div id="ratingListContainer">
+                        <div style="text-align:center;padding:30px 0;color:#6b7a8a;">
+                            <p>🔍 Введите номер заявления, чтобы увидеть конкурсный список по вашему профилю</p>
+                        </div>
+                    </div>
+                    <div class="list-footer" id="listFooter">
+                        Всего заявлений: <strong id="listTotal">—</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация -->
+            <div class="info-box">
+                <p>
+                    <span class="hint-icon">ℹ️</span>
+                    Если вы не нашли своё заявление, проверьте правильность введённого номера.
+                    При возникновении вопросов обратитесь в приёмную комиссию.
+                </p>
+            </div>
+
+            <!-- Статус -->
+            <div id="status"></div>
+
+            <!-- Подвал -->
+            <div class="footer">
+                <p>© 2026 <span class="footer-highlight">Приёмная комиссия</span>. Все права защищены.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // === НАСТРОЙКИ ===
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyo0KXwfeQeQdIAuxxvBe4XqryHXtRHBVeIM1YRoq_8ScYXl6TfCZx4J6o-tKxKnR4x/exec';
+
+        // === ДАТА ОКОНЧАНИЯ ПРИЁМА ЗАЯВЛЕНИЙ ===
+        const DEADLINE_DATE = new Date('2026-08-22T23:59:59');
+
+        // === ЭЛЕМЕНТЫ ===
+        const maintenanceOverlay = document.getElementById('maintenanceOverlay');
+        const mainContent = document.getElementById('mainContent');
+        const searchNumberInput = document.getElementById('searchNumber');
+        const checkBtn = document.getElementById('checkBtn');
+        const searchStatus = document.getElementById('searchStatus');
+        const statusDiv = document.getElementById('status');
+
+        // Элементы результата
+        const resultCard = document.getElementById('resultCard');
+        const resultAppNumber = document.getElementById('resultAppNumber');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultPlace = document.getElementById('resultPlace');
+        const resultProfile = document.getElementById('resultProfile');
+        const resultScore = document.getElementById('resultScore');
+        const resultTotal = document.getElementById('resultTotal');
+        const resultPlaces = document.getElementById('resultPlaces');
+        const resultStatus = document.getElementById('resultStatus');
+        const withdrawnBlock = document.getElementById('withdrawnBlock');
+        const resultBlock = document.getElementById('resultBlock');
+
+        // Элементы конкурсного списка
+        const ratingListCard = document.getElementById('ratingListCard');
+        const ratingListContainer = document.getElementById('ratingListContainer');
+        const listProfileBadge = document.getElementById('listProfileBadge');
+        const listTotal = document.getElementById('listTotal');
+
+        // Элементы таймера
+        const timerDays = document.getElementById('timerDays');
+        const timerHours = document.getElementById('timerHours');
+        const timerMinutes = document.getElementById('timerMinutes');
+        const timerSeconds = document.getElementById('timerSeconds');
+        const timerGrid = document.getElementById('timerGrid');
+        const timerExpired = document.getElementById('timerExpired');
+
+        // Вкладки
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        let isChecking = false;
+        let maintenanceMode = false;
+        let timerInterval = null;
+        let isDeadlinePassed = false;
+        let currentUserAppNumber = null;
+
+        // === ВКЛАДКИ ===
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                tabButtons.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+            });
+        });
+
+        // === ТАЙМЕР ===
+        function updateTimer() {
+            const now = new Date();
+            const diff = DEADLINE_DATE - now;
+
+            if (diff <= 0) {
+                timerGrid.style.display = 'none';
+                timerExpired.classList.add('show');
+                isDeadlinePassed = true;
+                return;
+            }
+
+            timerGrid.style.display = 'grid';
+            timerExpired.classList.remove('show');
+            isDeadlinePassed = false;
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            timerDays.textContent = String(days).padStart(2, '0');
+            timerHours.textContent = String(hours).padStart(2, '0');
+            timerMinutes.textContent = String(minutes).padStart(2, '0');
+            timerSeconds.textContent = String(seconds).padStart(2, '0');
+        }
+
+        function startTimer() {
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // === ПРОВЕРКА РЕЖИМА ОБСЛУЖИВАНИЯ ===
+        async function checkMaintenanceStatus() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=checkMaintenance', {
+                    method: 'GET'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    maintenanceMode = data.maintenanceMode;
+                    if (maintenanceMode) {
+                        maintenanceOverlay.classList.add('show');
+                        mainContent.classList.add('hidden');
+                    } else {
+                        maintenanceOverlay.classList.remove('show');
+                        mainContent.classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка при проверке статуса:', error);
+                maintenanceOverlay.classList.remove('show');
+                mainContent.classList.remove('hidden');
+            }
+        }
+
+        // === ПОЛУЧЕНИЕ СТАТУСА ЗАЯВЛЕНИЯ ===
+        async function getApplicationStatus(number) {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=getApplicationStatus&number=' + number, {
+                    method: 'GET'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.status);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    return data.data;
+                } else {
+                    throw new Error(data.error || 'Заявление не найдено');
+                }
+            } catch (error) {
+                console.error('Error getting application status:', error);
+                throw error;
+            }
+        }
+
+        // === ПОЛУЧЕНИЕ РЕЙТИНГОВОГО СПИСКА ===
+        async function getRatingList(profile) {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=getRatingList&profile=' + encodeURIComponent(profile), {
+                    method: 'GET'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.status);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    return data.data;
+                } else {
+                    throw new Error(data.error || 'Список не найден');
+                }
+            } catch (error) {
+                console.error('Error getting rating list:', error);
+                throw error;
+            }
+        }
+
+        // === ОТОБРАЖЕНИЕ РЕЗУЛЬТАТА (СТАТУС) ===
+        function displayResult(data) {
+            currentUserAppNumber = data.appNumber;
+
+            resultAppNumber.textContent = data.appNumber;
+            resultProfile.textContent = data.profile;
+
+            // === ПРОВЕРКА: ОТОЗВАНО ЛИ ЗАЯВЛЕНИЕ ===
+            if (data.comment && data.comment === 'Заявление отозвано') {
+                // Скрываем обычный блок, показываем блок "отозвано"
+                withdrawnBlock.style.display = 'block';
+                resultBlock.style.display = 'none';
+                resultTitle.textContent = '📢 Заявление отозвано';
+                resultTitle.className = 'result-title fail';
+                resultStatus.textContent = '❌ Заявление отозвано';
+                resultStatus.style.color = '#dc3545';
+                resultStatus.className = 'fail';
+                
+                // Скрываем конкурсный список
+                ratingListCard.classList.remove('show');
+                resultCard.classList.add('show');
+                return;
+            }
+
+            // === ОБЫЧНАЯ ЛОГИКА ДЛЯ АКТИВНЫХ ЗАЯВЛЕНИЙ ===
+            withdrawnBlock.style.display = 'none';
+            resultBlock.style.display = 'block';
+
+            resultPlace.textContent = data.place;
+
+            const score = parseFloat(data.totalScore);
+            resultScore.textContent = score.toFixed(1);
+
+            resultTotal.textContent = data.totalApplications;
+            resultPlaces.textContent = data.placesAvailable;
+
+            if (isDeadlinePassed) {
+                if (data.place <= data.placesAvailable) {
+                    resultStatus.textContent = '✅ Вы прошли конкурсный отбор!';
+                    resultStatus.style.color = '#28a745';
+                    resultStatus.className = 'success';
+                    resultTitle.textContent = '🎉 Поздравляем! Вы прошли конкурсный отбор!';
+                    resultTitle.className = 'result-title success';
+                } else {
+                    resultStatus.textContent = '❌ Вы не прошли конкурсный отбор.';
+                    resultStatus.style.color = '#dc3545';
+                    resultStatus.className = 'fail';
+                    resultTitle.textContent = '😔 К сожалению, вы не прошли конкурсный отбор.';
+                    resultTitle.className = 'result-title fail';
+                }
+            } else {
+                resultStatus.textContent = '✅ Вы участвуете в индивидуальном конкурсном отборе.';
+                resultStatus.style.color = '#28a745';
+                resultStatus.className = 'success';
+                resultTitle.textContent = 'Ваше место в рейтинге';
+                resultTitle.className = 'result-title';
+            }
+
+            if (data.place <= data.placesAvailable) {
+                resultPlace.className = 'value high';
+            } else if (data.place <= data.placesAvailable * 2) {
+                resultPlace.className = 'value medium';
+            } else {
+                resultPlace.className = 'value low';
+            }
+
+            resultCard.classList.add('show');
+
+            // Загружаем конкурсный список в фоне
+            loadRatingList(data.profile, data.appNumber);
+        }
+
+        // === ЗАГРУЗКА КОНКУРСНОГО СПИСКА ===
+        async function loadRatingList(profile, userAppNumber) {
+            try {
+                ratingListContainer.innerHTML = '<div style="text-align:center;padding:30px 0;color:#6b7a8a;">⏳ Загрузка списка...</div>';
+
+                const data = await getRatingList(profile);
+
+                if (!data || data.length === 0) {
+                    ratingListContainer.innerHTML = '<div style="text-align:center;padding:30px 0;color:#6b7a8a;">📭 В конкурсном списке пока нет участников</div>';
+                    listTotal.textContent = '0';
+                    return;
+                }
+
+                listProfileBadge.textContent = profile;
+                listTotal.textContent = data.length;
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>№</th>
+                                <th>Подан оригинал</th>
+                                <th>№ заявления</th>
+                                <th>Суммарный балл</th>
+                                <th>Комментарий</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.forEach((item, index) => {
+                    const place = index + 1;
+                    let rowClass = '';
+                    let showAppNumber = true;
+                    let commentDisplay = item.comment || '—';
+
+                    // Проверяем, отозвано ли заявление
+                    if (item.comment && item.comment === 'Заявление отозвано') {
+                        rowClass = 'withdrawn-row';
+                        showAppNumber = false;
+                    }
+
+                    // Проверяем, является ли это заявление пользователя
+                    const isUser = item.appNumber === userAppNumber;
+
+                    if (isUser && !rowClass) {
+                        rowClass = 'highlight-row';
+                    }
+
+                    const appNumberDisplay = showAppNumber ? item.appNumber : '—';
+                    const scoreDisplay = rowClass.includes('withdrawn') ? '—' : `<strong>${item.totalScore}</strong>`;
+                    
+                    const youBadge = isUser ? '<span class="you-badge">это вы</span>' : '';
+
+                    let originalDisplay = '—';
+                    if (item.originalDocs === 'Да') {
+                        originalDisplay = '<span class="original-badge yes">✅</span>';
+                    } else if (item.originalDocs === 'Нет') {
+                        originalDisplay = '<span class="original-badge no">❌</span>';
+                    }
+
+                    html += `
+                        <tr class="${rowClass}">
+                            <td class="place-high">${place}</td>
+                            <td>${originalDisplay}</td>
+                            <td>${appNumberDisplay} ${youBadge}</td>
+                            <td>${scoreDisplay}</td>
+                            <td>${commentDisplay}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                `;
+
+                ratingListContainer.innerHTML = html;
+                ratingListCard.classList.add('show');
+
+            } catch (error) {
+                console.error('Ошибка загрузки списка:', error);
+                ratingListContainer.innerHTML = `<div style="text-align:center;padding:30px 0;color:#dc3545;">❌ ${error.message}</div>`;
+            }
+        }
+
+        // === ОШИБКА ===
+        function showError(message) {
+            resultCard.classList.remove('show');
+            ratingListCard.classList.remove('show');
+            searchStatus.textContent = '❌ ' + message;
+            searchStatus.className = 'search-status not-found';
+            statusDiv.className = 'error';
+            statusDiv.textContent = '❌ ' + message;
+            statusDiv.style.display = 'block';
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // === ОСНОВНАЯ ФУНКЦИЯ ПРОВЕРКИ ===
+        async function checkApplication() {
+            if (isChecking) return;
+
+            const number = parseInt(searchNumberInput.value);
+            if (!number || number < 1) {
+                searchStatus.textContent = '❌ Введите корректный номер заявления';
+                searchStatus.className = 'search-status not-found';
+                resultCard.classList.remove('show');
+                ratingListCard.classList.remove('show');
+                return;
+            }
+
+            if (maintenanceMode) {
+                searchStatus.textContent = '⏳ Система обновляется. Попробуйте позже.';
+                searchStatus.className = 'search-status error';
+                return;
+            }
+
+            isChecking = true;
+            checkBtn.disabled = true;
+            checkBtn.textContent = '⏳ Проверка...';
+            searchStatus.textContent = '⏳ Поиск заявления...';
+            searchStatus.className = 'search-status';
+            resultCard.classList.remove('show');
+            ratingListCard.classList.remove('show');
+            statusDiv.style.display = 'none';
+
+            try {
+                const data = await getApplicationStatus(number);
+                displayResult(data);
+                searchStatus.textContent = '✅ Заявление найдено!';
+                searchStatus.className = 'search-status found';
+                statusDiv.style.display = 'none';
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showError(error.message || 'Заявление с таким номером не найдено');
+            } finally {
+                isChecking = false;
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Проверить';
+            }
+        }
+
+        // === ОБРАБОТЧИКИ СОБЫТИЙ ===
+        checkBtn.addEventListener('click', checkApplication);
+
+        searchNumberInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkApplication();
+            }
+        });
+
+        // === АВТОПРОВЕРКА ПО URL ===
+        function checkUrlForNumber() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const number = urlParams.get('number');
+            if (number && parseInt(number) > 0) {
+                searchNumberInput.value = number;
+                setTimeout(checkApplication, 500);
+            }
+        }
+
+        window.addEventListener('load', function() {
+            searchNumberInput.focus();
+            startTimer();
+            checkUrlForNumber();
+        });
+
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        checkMaintenanceStatus();
+        setInterval(checkMaintenanceStatus, 30000);
+    </script>
+
+</body>
+</html>
