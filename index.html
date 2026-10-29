@@ -171,47 +171,6 @@
             display: none;
         }
 
-        /* === ВКЛАДКИ === */
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e9ecef;
-            flex-wrap: wrap;
-        }
-        .tabs .tab-btn {
-            padding: 10px 20px;
-            background: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
-            font-size: 14px;
-            font-weight: 600;
-            color: #6b7a8a;
-            cursor: pointer;
-            transition: 0.3s;
-            border-radius: 8px 8px 0 0;
-        }
-        .tabs .tab-btn:hover {
-            color: #2c3e50;
-            background: #f8f9fa;
-        }
-        .tabs .tab-btn.active {
-            color: #2e86de;
-            border-bottom-color: #2e86de;
-            background: #f8f9ff;
-        }
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         /* === ПОИСК СТАТУСА === */
         .search-section {
             background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
@@ -520,22 +479,6 @@
             .subtitle {
                 font-size: 14px;
             }
-            .tabs .tab-btn {
-                padding: 8px 14px;
-                font-size: 13px;
-                flex: 1;
-                text-align: center;
-            }
-            .rating-list-card {
-                padding: 18px 15px;
-            }
-            .rating-list-card table {
-                font-size: 12px;
-            }
-            .rating-list-card table th,
-            .rating-list-card table td {
-                padding: 6px 8px;
-            }
         }
         @media (max-width: 380px) {
             .result-card .result-grid {
@@ -543,13 +486,6 @@
             }
             .timer-section .timer-grid {
                 grid-template-columns: repeat(2, 1fr);
-            }
-            .rating-list-card table {
-                font-size: 11px;
-            }
-            .rating-list-card table th,
-            .rating-list-card table td {
-                padding: 4px 6px;
             }
         }
     </style>
@@ -614,52 +550,44 @@
                 <div id="searchStatus" class="search-status">Введите номер заявления для проверки</div>
             </div>
 
-            <!-- === ВКЛАДКИ === -->
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="tab1">📊 Мой статус</button>
-                <button class="tab-btn" data-tab="tab2" id="ratingListTab">📋 Конкурсный список</button>
-            </div>
-
-            <!-- === ВКЛАДКА 1: МОЙ СТАТУС === -->
-            <div id="tab1" class="tab-content active">
-                <div id="resultCard" class="result-card">
-                    <div class="result-number">📄 Заявление №<strong id="resultAppNumber">—</strong></div>
-                    <div class="result-title" id="resultTitle">Ваше место в рейтинге</div>
-                    <!-- Блок для отозванного заявления (скрыт по умолчанию) -->
-                    <div id="withdrawnBlock" style="display:none;">
-                        <div class="withdrawn-icon">📢</div>
-                        <div class="withdrawn-text">Заявление отозвано</div>
-                        <div class="withdrawn-subtext">Вы отозвали своё заявление. Оно не участвует в конкурсном отборе.</div>
-                    </div>
-                    <!-- Обычный блок с результатами -->
-                    <div id="resultBlock">
-                        <div class="result-grid">
-                            <div class="result-item">
-                                <div class="label"><span class="emoji">🏆</span> Место в рейтинге</div>
-                                <div class="value high" id="resultPlace">—</div>
-                            </div>
-                            <div class="result-item">
-                                <div class="label"><span class="emoji">⭐</span> Суммарный балл</div>
-                                <div class="value" id="resultScore">—</div>
-                            </div>
-                            <div class="result-item">
-                                <div class="label"><span class="emoji">📌</span> Всего заявлений</div>
-                                <div class="value" id="resultTotal">—</div>
-                            </div>
-                            <div class="result-item">
-                                <div class="label"><span class="emoji">📊</span> Профиль</div>
-                                <div class="value profile" id="resultProfile">—</div>
-                            </div>
-                            <div class="result-divider"></div>
-                            <div class="result-item" style="grid-column: 1 / -1;">
-                                <div class="label"><span class="emoji">🎯</span> Мест для зачисления</div>
-                                <div class="value" id="resultPlaces">—</div>
-                            </div>
+            <!-- === РЕЗУЛЬТАТ === -->
+            <div id="resultCard" class="result-card">
+                <div class="result-number">📄 Заявление №<strong id="resultAppNumber">—</strong></div>
+                <div class="result-title" id="resultTitle">Ваше место в рейтинге</div>
+                <!-- Блок для отозванного заявления (скрыт по умолчанию) -->
+                <div id="withdrawnBlock" style="display:none;">
+                    <div class="withdrawn-icon">📢</div>
+                    <div class="withdrawn-text">Заявление отозвано</div>
+                    <div class="withdrawn-subtext">Вы отозвали своё заявление. Оно не участвует в конкурсном отборе.</div>
+                </div>
+                <!-- Обычный блок с результатами -->
+                <div id="resultBlock">
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="label"><span class="emoji">🏆</span> Место в рейтинге</div>
+                            <div class="value high" id="resultPlace">—</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label"><span class="emoji">⭐</span> Суммарный балл</div>
+                            <div class="value" id="resultScore">—</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label"><span class="emoji">📌</span> Всего заявлений</div>
+                            <div class="value" id="resultTotal">—</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label"><span class="emoji">📊</span> Профиль</div>
+                            <div class="value profile" id="resultProfile">—</div>
+                        </div>
+                        <div class="result-divider"></div>
+                        <div class="result-item" style="grid-column: 1 / -1;">
+                            <div class="label"><span class="emoji">🎯</span> Мест для зачисления</div>
+                            <div class="value" id="resultPlaces">—</div>
                         </div>
                     </div>
-                    <div class="result-footer" id="resultFooter">
-                        💡 Статус: <strong id="resultStatus">Заявление принято</strong>
-                    </div>
+                </div>
+                <div class="result-footer" id="resultFooter">
+                    💡 Статус: <strong id="resultStatus">Заявление принято</strong>
                 </div>
             </div>
 
@@ -711,12 +639,6 @@
         const withdrawnBlock = document.getElementById('withdrawnBlock');
         const resultBlock = document.getElementById('resultBlock');
 
-        // Элементы конкурсного списка
-        const ratingListCard = document.getElementById('ratingListCard');
-        const ratingListContainer = document.getElementById('ratingListContainer');
-        const listProfileBadge = document.getElementById('listProfileBadge');
-        const listTotal = document.getElementById('listTotal');
-
         // Элементы таймера
         const timerDays = document.getElementById('timerDays');
         const timerHours = document.getElementById('timerHours');
@@ -725,25 +647,11 @@
         const timerGrid = document.getElementById('timerGrid');
         const timerExpired = document.getElementById('timerExpired');
 
-        // Вкладки
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-
         let isChecking = false;
         let maintenanceMode = false;
         let timerInterval = null;
         let isDeadlinePassed = false;
         let currentUserAppNumber = null;
-
-        // === ВКЛАДКИ ===
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                tabButtons.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById(this.dataset.tab).classList.add('active');
-            });
-        });
 
         // === ТАЙМЕР ===
         function updateTimer() {
@@ -826,30 +734,6 @@
             }
         }
 
-        // === ПОЛУЧЕНИЕ РЕЙТИНГОВОГО СПИСКА ===
-        async function getRatingList(profile) {
-            try {
-                const response = await fetch(SCRIPT_URL + '?action=getRatingList&profile=' + encodeURIComponent(profile), {
-                    method: 'GET'
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.status);
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    return data.data;
-                } else {
-                    throw new Error(data.error || 'Список не найден');
-                }
-            } catch (error) {
-                console.error('Error getting rating list:', error);
-                throw error;
-            }
-        }
-
         // === ОТОБРАЖЕНИЕ РЕЗУЛЬТАТА (СТАТУС) ===
         function displayResult(data) {
             currentUserAppNumber = data.appNumber;
@@ -868,8 +752,6 @@
                 resultStatus.style.color = '#dc3545';
                 resultStatus.className = 'fail';
                 
-                // Скрываем конкурсный список
-                ratingListCard.classList.remove('show');
                 resultCard.classList.add('show');
                 return;
             }
@@ -917,101 +799,11 @@
             }
 
             resultCard.classList.add('show');
-
-            // Загружаем конкурсный список в фоне
-            loadRatingList(data.profile, data.appNumber);
-        }
-
-        // === ЗАГРУЗКА КОНКУРСНОГО СПИСКА ===
-        async function loadRatingList(profile, userAppNumber) {
-            try {
-                ratingListContainer.innerHTML = '<div style="text-align:center;padding:30px 0;color:#6b7a8a;">⏳ Загрузка списка...</div>';
-
-                const data = await getRatingList(profile);
-
-                if (!data || data.length === 0) {
-                    ratingListContainer.innerHTML = '<div style="text-align:center;padding:30px 0;color:#6b7a8a;">📭 В конкурсном списке пока нет участников</div>';
-                    listTotal.textContent = '0';
-                    return;
-                }
-
-                listProfileBadge.textContent = profile;
-                listTotal.textContent = data.length;
-
-                let html = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>№</th>
-                                <th>Подан оригинал</th>
-                                <th>№ заявления</th>
-                                <th>Суммарный балл</th>
-                                <th>Комментарий</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                data.forEach((item, index) => {
-                    const place = index + 1;
-                    let rowClass = '';
-                    let showAppNumber = true;
-                    let commentDisplay = item.comment || '—';
-
-                    // Проверяем, отозвано ли заявление
-                    if (item.comment && item.comment === 'Заявление отозвано') {
-                        rowClass = 'withdrawn-row';
-                        showAppNumber = false;
-                    }
-
-                    // Проверяем, является ли это заявление пользователя
-                    const isUser = item.appNumber === userAppNumber;
-
-                    if (isUser && !rowClass) {
-                        rowClass = 'highlight-row';
-                    }
-
-                    const appNumberDisplay = showAppNumber ? item.appNumber : '—';
-                    const scoreDisplay = rowClass.includes('withdrawn') ? '—' : `<strong>${item.totalScore}</strong>`;
-                    
-                    const youBadge = isUser ? '<span class="you-badge">это вы</span>' : '';
-
-                    let originalDisplay = '—';
-                    if (item.originalDocs === 'Да') {
-                        originalDisplay = '<span class="original-badge yes">✅</span>';
-                    } else if (item.originalDocs === 'Нет') {
-                        originalDisplay = '<span class="original-badge no">❌</span>';
-                    }
-
-                    html += `
-                        <tr class="${rowClass}">
-                            <td class="place-high">${place}</td>
-                            <td>${originalDisplay}</td>
-                            <td>${appNumberDisplay} ${youBadge}</td>
-                            <td>${scoreDisplay}</td>
-                            <td>${commentDisplay}</td>
-                        </tr>
-                    `;
-                });
-
-                html += `
-                        </tbody>
-                    </table>
-                `;
-
-                ratingListContainer.innerHTML = html;
-                ratingListCard.classList.add('show');
-
-            } catch (error) {
-                console.error('Ошибка загрузки списка:', error);
-                ratingListContainer.innerHTML = `<div style="text-align:center;padding:30px 0;color:#dc3545;">❌ ${error.message}</div>`;
-            }
         }
 
         // === ОШИБКА ===
         function showError(message) {
             resultCard.classList.remove('show');
-            ratingListCard.classList.remove('show');
             searchStatus.textContent = '❌ ' + message;
             searchStatus.className = 'search-status not-found';
             statusDiv.className = 'error';
@@ -1031,7 +823,6 @@
                 searchStatus.textContent = '❌ Введите корректный номер заявления';
                 searchStatus.className = 'search-status not-found';
                 resultCard.classList.remove('show');
-                ratingListCard.classList.remove('show');
                 return;
             }
 
@@ -1047,7 +838,6 @@
             searchStatus.textContent = '⏳ Поиск заявления...';
             searchStatus.className = 'search-status';
             resultCard.classList.remove('show');
-            ratingListCard.classList.remove('show');
             statusDiv.style.display = 'none';
 
             try {
