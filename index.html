@@ -423,114 +423,6 @@
             color: #6b7a8a;
         }
 
-        /* === КОНКУРСНЫЙ СПИСОК === */
-        .rating-list-card {
-            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
-            border-radius: 12px;
-            padding: 25px 30px;
-            border: 2px solid #dce4ec;
-            display: none;
-            margin-top: 20px;
-            transition: 0.3s;
-            overflow-x: auto;
-        }
-        .rating-list-card.show {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        .rating-list-card .list-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .rating-list-card .list-header h3 {
-            font-size: 18px;
-            color: #1a2a3a;
-        }
-        .rating-list-card .list-header .profile-badge {
-            background: linear-gradient(135deg, #2e86de, #6f42c1);
-            color: white;
-            padding: 4px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .rating-list-card table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        .rating-list-card table th {
-            background: #e9ecef;
-            color: #2c3e50;
-            padding: 10px 12px;
-            text-align: left;
-            font-weight: 700;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #dce4ec;
-        }
-        .rating-list-card table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e9ecef;
-            color: #2c3e50;
-        }
-        .rating-list-card table tr:hover td {
-            background: #f8f9ff;
-        }
-        .rating-list-card table .highlight-row {
-            background: #e8f4fd !important;
-        }
-        .rating-list-card table .highlight-row td {
-            font-weight: 700;
-            border-left: 3px solid #2e86de;
-        }
-        .rating-list-card table .withdrawn-row td {
-            opacity: 0.4;
-            color: #999;
-        }
-        .rating-list-card .place-high {
-            color: #28a745;
-            font-weight: 700;
-        }
-        .rating-list-card .you-badge {
-            display: inline-block;
-            background: #2e86de;
-            color: white;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 6px;
-            text-transform: uppercase;
-        }
-        .rating-list-card .original-badge {
-            display: inline-block;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        .rating-list-card .original-badge.yes {
-            color: #28a745;
-        }
-        .rating-list-card .original-badge.no {
-            color: #dc3545;
-        }
-        .rating-list-card .list-footer {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 2px solid #e9ecef;
-            text-align: center;
-            font-size: 13px;
-            color: #6b7a8a;
-        }
-        .rating-list-card .list-footer strong {
-            color: #1a2a3a;
-        }
-
         /* === ИНФОРМАЦИЯ === */
         .info-box {
             text-align: center;
@@ -767,24 +659,6 @@
                     </div>
                     <div class="result-footer" id="resultFooter">
                         💡 Статус: <strong id="resultStatus">Заявление принято</strong>
-                    </div>
-                </div>
-            </div>
-
-            <!-- === ВКЛАДКА 2: КОНКУРСНЫЙ СПИСОК === -->
-            <div id="tab2" class="tab-content">
-                <div id="ratingListCard" class="rating-list-card">
-                    <div class="list-header">
-                        <h3>📋 Конкурсный список</h3>
-                        <span class="profile-badge" id="listProfileBadge">—</span>
-                    </div>
-                    <div id="ratingListContainer">
-                        <div style="text-align:center;padding:30px 0;color:#6b7a8a;">
-                            <p>🔍 Введите номер заявления, чтобы увидеть конкурсный список по вашему профилю</p>
-                        </div>
-                    </div>
-                    <div class="list-footer" id="listFooter">
-                        Всего заявлений: <strong id="listTotal">—</strong>
                     </div>
                 </div>
             </div>
